@@ -8,8 +8,12 @@ Inspired by https://github.com/kolypto/j2cli
 
 ```bash
 # Pass files explicitly
-python low-sodium.py template.jinja [pillar.yaml] > output.txt
+python low-sodium.py [-d pillar.yaml] template.jinja > output.txt
 
 # Pass template via stdin
-cat template.jinja | python low-sodium.py [pillar.yaml] > output.txt
+cat template.jinja | python [-d pillar.yaml] low-sodium.py > output.txt
+
+# Pass data in enviornment variable
+PILLAR_YAML='"kube-config:node-env": "staging"' \
+	low-sodium.py template.jinja > output.txt
 ```

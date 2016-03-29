@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 import os, sys, yaml, argparse
 
 import jinja2
@@ -184,28 +186,30 @@ def render_command(stdin, argv):
         epilog=''
     )
     parser.add_argument('-f', '--format', default='?', help='Input data format', choices=['?'] + list(FORMATS.keys()))
+    parser.add_argument('-d', '--data', default='', help='Input data path')
     parser.add_argument('template', nargs='?', default='-', help='Template file to process')
-    parser.add_argument('data', nargs='?', default='pillar.yaml', help='Input data path')
     args = parser.parse_args(argv)
 
-    # Input: guess format
-    if args.format == '?':
-        args.format = {
-            '.ini': 'ini',
-            '.json': 'json',
-            '.yml': 'yaml',
-            '.yaml': 'yaml',
-        }[os.path.splitext(args.data)[1]]
+    # Input: template
+    input_template_f = stdin if args.template == '-' else open(args.template)
 
     # Input: data
-    input_template_f = stdin if args.template == '-' else open(args.template)
-    input_data_f = open(args.data)
+    context = _parse_yaml(os.environ['PILLAR_YAML'])
+    if args.data:
+        # Input: guess format
+        if args.format == '?':
+            args.format = {
+                '.ini': 'ini',
+                '.json': 'json',
+                '.yml': 'yaml',
+                '.yaml': 'yaml',
+            }[os.path.splitext(args.data)[1]]
 
-    # Read data
-    context = read_context_data(
-        args.format,
-        input_data_f
-    )
+        input_data_f = open(args.data)
+        context = read_context_data(
+            args.format,
+            input_data_f
+        )
 
     # Render
     return render_template(
